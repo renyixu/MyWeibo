@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xurenyi.inter.AddImgsMapper">
+
+    <select id="findWeiboById" parameterType="Integer" resultType="myWeibo">
+        select * from weibo where wid=#{a}
+    </select>
+
+    <select id="findWeiboListByLike" parameterType="String" resultType="myWeibo">
+        select * from weibo where wcontent like '%${value}%'
+    </select>
+
+    <select id="findAllWeibo" resultType="myWeibo">
+        select * from weibo order by is_top desc,wid desc
+    </select>
+
+    <select id="findImgsBywid" parameterType="Integer" resultType="com.xurenyi.pojo.WImg">
+        select * from wimg where wid=#{wid}
+    </select>
+
+    <insert id="addWeibo" parameterType="myWeibo">
+        <selectKey keyColumn="wid" keyProperty="wid" resultType="Integer" order="AFTER">
+            select LAST_INSERT_ID();
+        </selectKey>
+        insert into weibo values(null,#{wcontent},#{wdate},#{is_edit},#{is_top})
+
+    </insert>
+
+    <!--批量插入图片-->
+    <insert id="addImgs" parameterType="java.util.List">
+        insert into wimg values
+        <foreach collection="imgs" item="wimg" separator=",">
+            (#{wimg.wimgid},#{wimg.wimgpath},#{wimg.wid})
+        </foreach>
+    </insert>
+
+    <update id="editWeiboById" parameterType="myWeibo">
+        update weibo set wcontent=#{wcontent},is_edit=#{is_edit} where wid=#{wid}
+    </update>
+
+    <!--置顶分为两步：
+        1、先把已置顶的微博取消置顶
+        2、把当前微博置顶
+    -->
+    <update id="cancelAlreadyTopWeibo">
+        update weibo set is_top=0 where is_top=1
+    </update>
+
+    <update id="topWeiboById" parameterType="Integer">
+        update weibo set is_top=1 where wid=#{wid}
+    </update>
+
+    <!--取消置顶-->
+    <update id="cancelTopWeiboById" parameterType="Integer">
+        update weibo set is_top=0 where wid=#{wid}
+    </update>
+
+    <delete id="deleteWeiboById" parameterType="Integer">
+        delete from weibo where wid=#{a}
+    </delete>
+
+</mapper>
